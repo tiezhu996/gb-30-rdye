@@ -133,7 +133,7 @@ gb-30/
 | POST | /api/v1/applications | 登录（限流） | 提交领养申请（事务：创建申请+宠物置为待领养） |
 | GET | /api/v1/applications/me | 登录 | 我的申请列表 |
 | GET | /api/v1/applications/org | org | 机构收到的申请 |
-| PUT | /api/v1/applications/:id/status | 登录 | 申请状态流转（approved 时事务更新宠物为已领养） |
+| PUT | /api/v1/applications/:id/status | 登录 | 申请状态流转：机构推进/拒绝（body 带 `reason`），申请人仅可撤回（status=withdrawn）；approved 时事务更新宠物为已领养，rejected/withdrawn 时事务归还为 available 并失效首页缓存；approved/rejected/withdrawn 为终态，记录不可再改 |
 | GET | /api/v1/reviews/me | 登录 | 我的回访记录 |
 | GET | /api/v1/reviews/org | org | 机构回访记录 |
 | POST | /api/v1/reviews | org（限流） | 创建回访计划 |
@@ -156,9 +156,11 @@ gb-30/
 
 ## 枚举出现位置清单
 
-### ApplicationStatus（submitted/org_review/communicating/confirmed/offline_interview/approved/rejected）
+### ApplicationStatus（submitted/org_review/communicating/confirmed/offline_interview/approved/rejected/withdrawn）
 
-- 后端：`internal/constants/application.go`（定义+状态机）、`internal/model/adoption_application.go`（模型）、`internal/service/application_service.go`（流转校验）、`internal/util/formatters.go`（AppStatusText）、`internal/constants/log_templates.go`、`database/init.sql`
+- 终态：`approved`（机构通过，动物置为 adopted，记录锁定不可再改）、`rejected`（机构拒绝，动物归还 available，`close_reason` 记录拒绝原因）、`withdrawn`（申请人撤回，动物归还 available，`close_reason` 记录撤回说明）
+- 同一用户对同一宠物仅在存在「进行中」申请时禁止重复提交；被拒绝或撤回后可再次申请
+- 后端：`internal/constants/application.go`（定义+状态机+终态判断）、`internal/model/adoption_application.go`（模型，含 `CloseReason`）、`internal/service/application_service.go`（流转校验/事务/首页缓存失效）、`internal/util/formatters.go`（AppStatusText）、`internal/constants/log_templates.go`、`database/init.sql`
 - 前端：`src/constants/application.ts`（定义）、`src/components/common/ApplicationStatusBadge.tsx`、`src/pages/Applications.tsx`（进度列表/筛选）、`src/hooks/useAdoptionStats.ts`
 
 ### PetSpecies（dog/cat/rabbit/other）

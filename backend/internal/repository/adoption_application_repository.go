@@ -3,6 +3,7 @@ package repository
 import (
 	"gorm.io/gorm"
 
+	"github.com/gbadopt/gbadopt/internal/constants"
 	"github.com/gbadopt/gbadopt/internal/model"
 )
 
@@ -65,11 +66,31 @@ func (r *AdoptionApplicationRepository) ListByOrg(orgID uint, status string) ([]
 	return items, nil
 }
 
-// FindByUserAndPet checks an existing application for the same pet.
-func (r *AdoptionApplicationRepository) FindByUserAndPet(userID, petID uint) (*model.AdoptionApplication, error) {
+var activeStatuses = []string{
+	constants.AppStatusSubmitted,
+	constants.AppStatusOrgReview,
+	constants.AppStatusCommunicating,
+	constants.AppStatusConfirmed,
+	constants.AppStatusOfflineInterview,
+}
+
+// FindActiveByUserAndPet checks for an open (non-terminal) application
+// from the same user for the same pet. Closed applications do not block
+// the user from applying again.
+func (r *AdoptionApplicationRepository) FindActiveByUserAndPet(userID, petID uint) (*model.AdoptionApplication, error) {
 	var a model.AdoptionApplication
-	if err := translate(r.db.Where("user_id = ? AND pet_id = ?", userID, petID).First(&a).Error); err != nil {
+	if err := translate(r.db.Where("user_id = ? AND pet_id = ? AND status IN ?", userID, petID, activeStatuses).First(&a).Error); err != nil {
 		return nil, err
 	}
 	return &a, nil
+}
+
+// CountActiveByPet returns the number of open applications for a pet.
+func (r *AdoptionApplicationRepository) CountActiveByPet(petID uint) (int64, error) {
+	var n int64
+	if err := r.db.Model(&model.AdoptionApplication{}).
+		Where("pet_id = ? AND status IN ?", petID, activeStatuses).Count(&n).Error; err != nil {
+		return 0, err
+	}
+	return n, nil
 }

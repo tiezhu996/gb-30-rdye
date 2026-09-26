@@ -70,7 +70,7 @@ func seed(db *gorm.DB) error {
 	}
 
 	pets := []model.Pet{
-		{OrgID: org.ID, Name: "旺财", Species: "dog", Breed: "中华田园犬", Age: 2, Gender: "male", Size: "medium", City: "上海", Description: "性格温顺忠诚，已绝育疫苗齐全。", Personality: "亲人活泼", HealthStatus: "健康", Neutered: true, Vaccinated: true, ImageURLs: `["https://images.unsplash.com/photo-1543466835-00a7907e9de1?w=600"]`, Status: "available"},
+		{OrgID: org.ID, Name: "旺财", Species: "dog", Breed: "中华田园犬", Age: 2, Gender: "male", Size: "medium", City: "上海", Description: "性格温顺忠诚，已绝育疫苗齐全。", Personality: "亲人活泼", HealthStatus: "健康", Neutered: true, Vaccinated: true, ImageURLs: `["https://images.unsplash.com/photo-1543466835-00a7907e9de1?w=600"]`, Status: "pending"},
 		{OrgID: org.ID, Name: "雪球", Species: "cat", Breed: "英短", Age: 1, Gender: "female", Size: "small", City: "上海", Description: "安静粘人的小猫咪，已驱虫。", Personality: "温顺", HealthStatus: "健康", Neutered: true, Vaccinated: true, ImageURLs: `["https://images.unsplash.com/photo-1514888286974-6c03e2ca1dba?w=600"]`, Status: "available"},
 		{OrgID: org2.ID, Name: "跳跳", Species: "rabbit", Breed: "垂耳兔", Age: 1, Gender: "male", Size: "small", City: "北京", Description: "活泼好动的垂耳兔，喜欢胡萝卜。", Personality: "活泼", HealthStatus: "健康", Neutered: false, Vaccinated: false, ImageURLs: `["https://images.unsplash.com/photo-1585110396000-c9ffd4e4b308?w=600"]`, Status: "available"},
 		{OrgID: org2.ID, Name: "豆豆", Species: "dog", Breed: "柯基", Age: 3, Gender: "male", Size: "small", City: "北京", Description: "短腿萌宠，粘人爱撒娇。", Personality: "粘人", HealthStatus: "健康", Neutered: true, Vaccinated: true, ImageURLs: `["https://images.unsplash.com/photo-1529778873920-4da4926a72c2?w=600"]`, Status: "available"},

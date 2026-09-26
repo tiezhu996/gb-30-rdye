@@ -40,6 +40,11 @@ func (r *RedisClient) SetString(ctx context.Context, key, value string, ttl time
 	return r.client.Set(ctx, key, value, ttl).Err()
 }
 
+// Delete removes cached keys (no-op when they do not exist).
+func (r *RedisClient) Delete(ctx context.Context, keys ...string) error {
+	return r.client.Del(ctx, keys...).Err()
+}
+
 // Incr increments a counter.
 func (r *RedisClient) Incr(ctx context.Context, key string) (int64, error) {
 	return r.client.Incr(ctx, key).Result()

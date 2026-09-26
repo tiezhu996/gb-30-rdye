@@ -57,6 +57,7 @@ CREATE TABLE IF NOT EXISTS adoption_applications (
   org_id BIGINT NOT NULL,
   questionnaire JSONB DEFAULT '{}',
   status VARCHAR(32) NOT NULL DEFAULT 'submitted',
+  close_reason VARCHAR(512),
   created_at TIMESTAMPTZ DEFAULT NOW(),
   updated_at TIMESTAMPTZ DEFAULT NOW(),
   CONSTRAINT fk_app_user FOREIGN KEY (user_id) REFERENCES users(id),
@@ -144,7 +145,7 @@ INSERT INTO organizations (user_id, name, cert_type, status, contact, city, desc
   (3, '城市伴侣宠物收容所', 'registered', 'approved', '13900000000', '北京', '提供宠物收容、医疗与领养服务。');
 
 INSERT INTO pets (org_id, name, species, breed, age, gender, size, city, description, personality, health_status, neutered, vaccinated, image_urls, status) VALUES
-  (1, '旺财', 'dog', '中华田园犬', 2, 'male', 'medium', '上海', '性格温顺忠诚，已绝育疫苗齐全。', '亲人活泼', '健康', TRUE, TRUE, '["https://images.unsplash.com/photo-1543466835-00a7907e9de1?w=600"]', 'available'),
+  (1, '旺财', 'dog', '中华田园犬', 2, 'male', 'medium', '上海', '性格温顺忠诚，已绝育疫苗齐全。', '亲人活泼', '健康', TRUE, TRUE, '["https://images.unsplash.com/photo-1543466835-00a7907e9de1?w=600"]', 'pending'),
   (1, '雪球', 'cat', '英短', 1, 'female', 'small', '上海', '安静粘人的小猫咪，已驱虫。', '温顺', '健康', TRUE, TRUE, '["https://images.unsplash.com/photo-1514888286974-6c03e2ca1dba?w=600"]', 'available'),
   (2, '跳跳', 'rabbit', '垂耳兔', 1, 'male', 'small', '北京', '活泼好动的垂耳兔，喜欢胡萝卜。', '活泼', '健康', FALSE, FALSE, '["https://images.unsplash.com/photo-1585110396000-c9ffd4e4b308?w=600"]', 'available'),
   (2, '豆豆', 'dog', '柯基', 3, 'male', 'small', '北京', '短腿萌宠，粘人爱撒娇。', '粘人', '健康', TRUE, TRUE, '["https://images.unsplash.com/photo-1529778873920-4da4926a72c2?w=600"]', 'available');

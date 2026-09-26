@@ -7,6 +7,9 @@ type ApplicationSubmitRequest struct {
 }
 
 // ApplicationStatusRequest changes application status.
+// Reason records why the application ended and is kept on the record
+// for rejected/withdrawn applications.
 type ApplicationStatusRequest struct {
 	Status string `json:"status" binding:"required"`
+	Reason string `json:"reason"`
 }

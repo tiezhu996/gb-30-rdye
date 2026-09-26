@@ -1,9 +1,11 @@
 package service
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"log/slog"
+	"time"
 
 	"github.com/gbadopt/gbadopt/internal/constants"
 	"github.com/gbadopt/gbadopt/internal/model"
@@ -53,6 +55,7 @@ func (s *PetService) Publish(userID uint, p *model.Pet) (*model.Pet, error) {
 		s.logger.Error(fmt.Sprintf(constants.LogPetPublishFailed, p.Name), "error", err)
 		return nil, fmt.Errorf("pet publish: %w", err)
 	}
+	s.invalidateHomeCache()
 	s.logger.Info(fmt.Sprintf(constants.LogPetPublishSuccess, p.Name, p.Species), "id", p.ID)
 	return p, nil
 }
@@ -86,8 +89,22 @@ func (s *PetService) UpdateStatus(userID uint, petID uint, status string) (*mode
 	if err := s.repo.Update(p); err != nil {
 		return nil, fmt.Errorf("pet status update: %w", err)
 	}
+	// Availability changes (e.g. back to available) must reflect on the
+	// home recommendation and pet lists immediately.
+	s.invalidateHomeCache()
 	s.logger.Info(fmt.Sprintf(constants.LogPetStatusChanged, petID, status), "id", petID)
 	return p, nil
+}
+
+func (s *PetService) invalidateHomeCache() {
+	if s.redis == nil {
+		return
+	}
+	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
+	defer cancel()
+	if err := s.redis.Delete(ctx, constants.CacheKeyHomeOverview); err != nil {
+		s.logger.Warn("home overview cache invalidate failed", "error", err)
+	}
 }
 
 // List filters pets.
