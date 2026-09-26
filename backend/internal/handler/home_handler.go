@@ -8,6 +8,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 
+	"github.com/gbadopt/gbadopt/internal/constants"
 	"github.com/gbadopt/gbadopt/internal/dto"
 	"github.com/gbadopt/gbadopt/internal/service"
 	"github.com/gbadopt/gbadopt/internal/util"
@@ -30,7 +31,7 @@ func NewHomeHandler(petService *service.PetService, postService *service.PostSer
 func (h *HomeHandler) Overview(c *gin.Context) {
 	ctx, cancel := context.WithTimeout(c.Request.Context(), 5*time.Second)
 	defer cancel()
-	const cacheKey = "gbadopt:home:overview"
+	const cacheKey = constants.CacheKeyHomeOverview
 	if h.redis != nil {
 		if cached, err := h.redis.GetString(ctx, cacheKey); err == nil && cached != "" {
 			c.Data(http.StatusOK, "application/json; charset=utf-8", []byte(cached))

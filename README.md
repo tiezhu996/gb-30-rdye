@@ -130,10 +130,10 @@ gb-30/
 | GET | /api/v1/pets/:id | 公开 | 宠物详情 |
 | POST | /api/v1/pets | org（限流） | 发布宠物 |
 | PUT | /api/v1/pets/:id/status | org | 宠物状态变更 |
-| POST | /api/v1/applications | 登录（限流） | 提交领养申请（事务：创建申请+宠物置为待领养） |
-| GET | /api/v1/applications/me | 登录 | 我的申请列表 |
+| POST | /api/v1/applications | 登录（限流） | 提交领养申请（事务：创建申请+宠物置为申请中 pending） |
+| GET | /api/v1/applications/me | 登录 | 我的申请列表（含结束原因 close_reason） |
 | GET | /api/v1/applications/org | org | 机构收到的申请 |
-| PUT | /api/v1/applications/:id/status | 登录 | 申请状态流转（approved 时事务更新宠物为已领养） |
+| PUT | /api/v1/applications/:id/status | 登录 | 申请状态流转。机构可推进流程或 rejected（拒绝需带 reason）；申请人可 withdrawn（撤回需带 reason）。通过事务置宠物为 adopted 且记录不可再改；拒绝/撤回事务把宠物回置为 available（同宠物仍有其他进行中申请时保持 pending），并失效首页缓存 |
 | GET | /api/v1/reviews/me | 登录 | 我的回访记录 |
 | GET | /api/v1/reviews/org | org | 机构回访记录 |
 | POST | /api/v1/reviews | org（限流） | 创建回访计划 |
@@ -156,10 +156,10 @@ gb-30/
 
 ## 枚举出现位置清单
 
-### ApplicationStatus（submitted/org_review/communicating/confirmed/offline_interview/approved/rejected）
+### ApplicationStatus（submitted/org_review/communicating/confirmed/offline_interview 为进行中；approved/rejected/withdrawn 为终态）
 
-- 后端：`internal/constants/application.go`（定义+状态机）、`internal/model/adoption_application.go`（模型）、`internal/service/application_service.go`（流转校验）、`internal/util/formatters.go`（AppStatusText）、`internal/constants/log_templates.go`、`database/init.sql`
-- 前端：`src/constants/application.ts`（定义）、`src/components/common/ApplicationStatusBadge.tsx`、`src/pages/Applications.tsx`（进度列表/筛选）、`src/hooks/useAdoptionStats.ts`
+- 后端：`internal/constants/application.go`（定义+状态机+终态/活动态判断+角色流转 CanOrgTransition/CanUserWithdraw）、`internal/model/adoption_application.go`（含 close_reason 结束原因）、`internal/service/application_service.go`（流转校验、通过锁定/拒绝撤回回置宠物、缓存失效）、`internal/util/formatters.go`（AppStatusText）、`internal/constants/log_templates.go`、`database/init.sql`
+- 前端：`src/constants/application.ts`（定义）、`src/components/common/ApplicationStatusBadge.tsx`、`src/pages/Applications.tsx`（推进/拒绝/撤回按钮、原因录入弹窗、结束原因展示）、`src/hooks/useAdoptionStats.ts`
 
 ### PetSpecies（dog/cat/rabbit/other）
 

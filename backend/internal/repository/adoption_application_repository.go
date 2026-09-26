@@ -3,6 +3,7 @@ package repository
 import (
 	"gorm.io/gorm"
 
+	"github.com/gbadopt/gbadopt/internal/constants"
 	"github.com/gbadopt/gbadopt/internal/model"
 )
 
@@ -65,11 +66,27 @@ func (r *AdoptionApplicationRepository) ListByOrg(orgID uint, status string) ([]
 	return items, nil
 }
 
-// FindByUserAndPet checks an existing application for the same pet.
-func (r *AdoptionApplicationRepository) FindByUserAndPet(userID, petID uint) (*model.AdoptionApplication, error) {
+// FindActiveByUserAndPet returns the user's in-progress application for the same pet.
+// Closed applications (rejected/withdrawn/approved) are intentionally ignored so an
+// applicant may re-apply after the pet becomes available again.
+func (r *AdoptionApplicationRepository) FindActiveByUserAndPet(userID, petID uint) (*model.AdoptionApplication, error) {
 	var a model.AdoptionApplication
-	if err := translate(r.db.Where("user_id = ? AND pet_id = ?", userID, petID).First(&a).Error); err != nil {
+	err := translate(
+		r.db.Where("user_id = ? AND pet_id = ? AND status IN ?", userID, petID, constants.ActiveApplicationStatuses()).
+			First(&a).Error)
+	if err != nil {
 		return nil, err
 	}
 	return &a, nil
+}
+
+// CountActiveByPetIDTx counts in-progress applications of a pet within a transaction.
+// It is used when an application closes: the pet goes back to "available" only when
+// no other active application is competing for it.
+func (r *AdoptionApplicationRepository) CountActiveByPetIDTx(tx *gorm.DB, petID uint, excludeAppID uint) (int64, error) {
+	var n int64
+	err := tx.Model(&model.AdoptionApplication{}).
+		Where("pet_id = ? AND id <> ? AND status IN ?", petID, excludeAppID, constants.ActiveApplicationStatuses()).
+		Count(&n).Error
+	return n, err
 }

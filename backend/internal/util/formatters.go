@@ -45,6 +45,8 @@ func AppStatusText(s string) string {
 		return "已通过"
 	case "rejected":
 		return "已拒绝"
+	case "withdrawn":
+		return "已撤回"
 	default:
 		return "未知"
 	}
